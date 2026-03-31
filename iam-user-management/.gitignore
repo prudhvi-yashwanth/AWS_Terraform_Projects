@@ -1,0 +1,27 @@
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Terraform plan files
+*.tfplan
+
+# Sensitive variable files
+*.tfvars
+*.tfvars.json
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# Lock file (OPTIONAL - usually COMMIT this)
+ .terraform.lock.hcl
+
+# OS / Editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
