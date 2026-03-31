@@ -46,3 +46,21 @@ locals {
     error("Duplicate employee_id(s) found in users.csv: ${join(", ", local.duplicate_employee_ids)}")
   )
 }
+
+locals {
+
+  # Common tag builder (DRY approach)
+  common_tags = {
+    for emp_id, user in local.users :
+    emp_id => {
+      EmployeeID = emp_id
+      FullName   = "${user.first_name} ${user.last_name}"
+      FirstName  = user.first_name
+      LastName   = user.last_name
+      Role       = user.role
+      Department = user.department
+      ManagedBy  = "Terraform"
+      Project    = "IAM-User-Automation"
+    }
+  }
+}
