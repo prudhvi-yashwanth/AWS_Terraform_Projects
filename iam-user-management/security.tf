@@ -24,6 +24,55 @@ data "aws_iam_policy_document" "mfa_enforce" {
   }
 }
 
+data "aws_iam_policy_document" "cloudtrail_s3_policy" {
+  statement {
+    sid    = "AWSCloudTrailAclCheck"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+
+    actions = ["s3:GetBucketAcl"]
+
+    resources = [aws_s3_bucket.cloudtrail_logs.arn]
+  }
+
+  statement {
+    sid    = "AWSCloudTrailWrite"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+
+    actions = ["s3:PutObject"]
+
+    resources = [
+      "${aws_s3_bucket.cloudtrail_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+  }
+}
+
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_s3_bucket_policy" "cloudtrail_policy" {
+  provider = aws.india
+
+  bucket = aws_s3_bucket.cloudtrail_logs.id
+  policy = data.aws_iam_policy_document.cloudtrail_s3_policy.json
+}
+
+
 
 resource "aws_iam_policy" "mfa_enforce_policy" {
   provider = aws.india
@@ -75,8 +124,9 @@ resource "aws_cloudtrail" "main" {
   enable_logging                = true
 
   depends_on = [
-    aws_s3_bucket.cloudtrail_logs
-  ]
+  aws_s3_bucket.cloudtrail_logs,
+  aws_s3_bucket_policy.cloudtrail_policy
+]
 }
 
 
@@ -90,3 +140,4 @@ resource "aws_s3_bucket_public_access_block" "cloudtrail_block" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+

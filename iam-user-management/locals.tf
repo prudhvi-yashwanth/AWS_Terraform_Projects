@@ -88,3 +88,20 @@ locals {
     error("Invalid role(s) found in users.csv: ${join(", ", local.invalid_roles)}")
   )
 }
+
+locals {
+  # Read the raw file
+  raw_key = file("${path.module}/public_key.asc")
+
+  # Remove the BEGIN and END markers, and strip all whitespace (newlines, spaces)
+  pgp_key_base64 = replace(
+    replace(
+      replace(
+        local.raw_key,
+        "-----BEGIN PGP PUBLIC KEY BLOCK-----", ""
+      ),
+      "-----END PGP PUBLIC KEY BLOCK-----", ""
+    ),
+    "/\\s/", ""   # Remove all whitespace (including newlines)
+  )
+}

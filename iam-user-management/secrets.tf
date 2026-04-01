@@ -9,7 +9,7 @@ resource "aws_iam_user_login_profile" "login_profiles" {
   password_reset_required = true
 
   # Optional but recommended
-  pgp_key = filebase64("${path.module}/public_key.asc")
+pgp_key = file("${path.module}/clean_key.txt")
 
   depends_on = [
     aws_iam_user.users
