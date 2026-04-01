@@ -33,8 +33,7 @@ locals {
 
   # Step 6: Detect duplicates
   duplicate_employee_ids = toset([
-    for id, group in local.grouped_employee_ids :
-    id if length(group) > 1
+    for id, group in local.grouped_employee_ids : id if length(group) > 1
   ])
 }
 
@@ -62,5 +61,14 @@ locals {
       ManagedBy  = "Terraform"
       Project    = "IAM-User-Automation"
     }
+  }
+}
+
+locals {
+  role_to_group = {
+    Developer = "dev-group"
+    Tester    = "testing-group"
+    DevOps    = "operations-group"
+    Manager   = "management-group"
   }
 }

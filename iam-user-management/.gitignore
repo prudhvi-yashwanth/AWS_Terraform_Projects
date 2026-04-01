@@ -22,6 +22,5 @@ terraform.rc
 .DS_Store
 .vscode/
 .idea/
-
 # Logs
 *.log
