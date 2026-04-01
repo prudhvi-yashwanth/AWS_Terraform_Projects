@@ -1,7 +1,7 @@
+# Define IAM policy documents for each role
 data "aws_iam_policy_document" "developer" {
   statement {
     effect = "Allow"
-
     actions = [
       "ec2:Describe*",
       "ec2:RunInstances",
@@ -12,16 +12,13 @@ data "aws_iam_policy_document" "developer" {
       "s3:GetObject",
       "s3:PutObject"
     ]
-
     resources = ["*"]
   }
 }
 
-
 data "aws_iam_policy_document" "tester" {
   statement {
     effect = "Allow"
-
     actions = [
       "ec2:Describe*",
       "s3:ListBucket",
@@ -30,7 +27,6 @@ data "aws_iam_policy_document" "tester" {
       "logs:DescribeLogStreams",
       "logs:GetLogEvents"
     ]
-
     resources = ["*"]
   }
 }
@@ -38,14 +34,12 @@ data "aws_iam_policy_document" "tester" {
 data "aws_iam_policy_document" "devops" {
   statement {
     effect = "Allow"
-
     actions = [
       "ec2:*",
       "s3:*",
       "elasticloadbalancing:*",
       "cloudformation:*"
     ]
-
     resources = ["*"]
   }
 }
@@ -53,7 +47,6 @@ data "aws_iam_policy_document" "devops" {
 data "aws_iam_policy_document" "manager" {
   statement {
     effect = "Allow"
-
     actions = [
       "ec2:Describe*",
       "s3:ListAllMyBuckets",
@@ -61,12 +54,13 @@ data "aws_iam_policy_document" "manager" {
       "aws-portal:ViewBilling",
       "aws-portal:ViewUsage"
     ]
-
     resources = ["*"]
   }
 }
 
+# Create IAM policies from the above documents
 resource "aws_iam_policy" "policies" {
+  # Map each role to its corresponding policy document
   for_each = {
     Developer = data.aws_iam_policy_document.developer.json
     Tester    = data.aws_iam_policy_document.tester.json
@@ -78,8 +72,7 @@ resource "aws_iam_policy" "policies" {
 
   name        = "${each.key}-policy"
   description = "IAM policy for ${each.key} role"
-
-  policy = each.value
+  policy      = each.value
 
   tags = {
     ManagedBy = "Terraform"

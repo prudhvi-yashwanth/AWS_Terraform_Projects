@@ -1,5 +1,5 @@
 locals {
-  # Step 1: Read CSV
+  # Step 1: Read users from CSV
   raw_users = csvdecode(file("${path.module}/users.csv"))
 
   # Step 2: Normalize + validate fields
@@ -11,27 +11,27 @@ locals {
       role        = trimspace(u.role)
       department  = trimspace(u.department)
 
-      # Derived fields
+      # Derived field: username in firstname.lastname format
       username = lower("${trimspace(u.first_name)}.${trimspace(u.last_name)}")
     }
   ]
 
-  # Step 3: Convert to MAP using employee_id as key (stable identity)
+  # Step 3: Convert list to map keyed by employee_id
   users = {
     for u in local.normalized_users :
     u.employee_id => u
   }
 
-  # Step 4: Extract employee IDs
+  # Step 4: Extract employee IDs for duplicate detection
   employee_ids = [for u in local.normalized_users : u.employee_id]
 
-  # Step 5: Group IDs (clean duplicate detection)
+  # Step 5: Group IDs (used for duplicate detection)
   grouped_employee_ids = {
     for id in local.employee_ids :
     id => true...
   }
 
-  # Step 6: Detect duplicates
+  # Step 6: Collect IDs that appear more than once
   duplicate_employee_ids = toset([
     for id, group in local.grouped_employee_ids : id if length(group) > 1
   ])
@@ -47,8 +47,7 @@ locals {
 }
 
 locals {
-
-  # Common tag builder (DRY approach)
+  # Common tag builder for all resources
   common_tags = {
     for emp_id, user in local.users :
     emp_id => {
@@ -65,6 +64,7 @@ locals {
 }
 
 locals {
+  # Map roles to IAM groups
   role_to_group = {
     Developer = "dev-group"
     Tester    = "testing-group"
@@ -73,8 +73,8 @@ locals {
   }
 }
 
-
 locals {
+  # Detect roles not mapped to any group
   invalid_roles = toset([
     for u in local.users :
     u.role if !contains(keys(local.role_to_group), u.role)
@@ -82,26 +82,10 @@ locals {
 }
 
 locals {
+  # Hard fail if invalid roles are found
   _validate_roles = (
     length(local.invalid_roles) == 0 ?
     true :
     error("Invalid role(s) found in users.csv: ${join(", ", local.invalid_roles)}")
-  )
-}
-
-locals {
-  # Read the raw file
-  raw_key = file("${path.module}/public_key.asc")
-
-  # Remove the BEGIN and END markers, and strip all whitespace (newlines, spaces)
-  pgp_key_base64 = replace(
-    replace(
-      replace(
-        local.raw_key,
-        "-----BEGIN PGP PUBLIC KEY BLOCK-----", ""
-      ),
-      "-----END PGP PUBLIC KEY BLOCK-----", ""
-    ),
-    "/\\s/", ""   # Remove all whitespace (including newlines)
   )
 }
