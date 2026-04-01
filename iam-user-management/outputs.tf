@@ -24,3 +24,18 @@ output "iam_groups" {
     group_name => group.name
   }
 }
+
+
+output "user_group_mapping" {
+  value = {
+    for emp_id, membership in aws_iam_user_group_membership.user_membership :
+    emp_id => membership.groups
+  }
+}
+
+output "policy_arns" {
+  value = {
+    for role, policy in aws_iam_policy.policies :
+    role => policy.arn
+  }
+}

@@ -72,3 +72,19 @@ locals {
     Manager   = "management-group"
   }
 }
+
+
+locals {
+  invalid_roles = toset([
+    for u in local.users :
+    u.role if !contains(keys(local.role_to_group), u.role)
+  ])
+}
+
+locals {
+  _validate_roles = (
+    length(local.invalid_roles) == 0 ?
+    true :
+    error("Invalid role(s) found in users.csv: ${join(", ", local.invalid_roles)}")
+  )
+}
