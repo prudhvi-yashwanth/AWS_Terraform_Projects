@@ -1,3 +1,5 @@
+## <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/f2816d02-4344-43d4-b714-fa60266a3d64" />
+
 # 📦 AWS IAM User Management & Authentication using Terraform
 
 ## 📖 Overview
