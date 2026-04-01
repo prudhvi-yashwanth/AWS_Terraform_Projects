@@ -39,3 +39,13 @@ output "policy_arns" {
     role => policy.arn
   }
 }
+
+output "group_policy_mapping" {
+  value = {
+    for role, attach in aws_iam_group_policy_attachment.attachments :
+    role => {
+      group  = attach.group
+      policy = attach.policy_arn
+    }
+  }
+}
